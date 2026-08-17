@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include <math.h>
 
 #define MAX_COURSES 20
 #define NAME_SIZE 50
@@ -23,10 +25,9 @@ void updateCourse(struct Course courses[], int courseCount);
 void deleteCourse(struct Course courses[], int *courseCount);
 void saveData(struct Course courses[], int courseCount);
 int loadData(struct Course courses[]);
-int findCourse(struct Course courses[], int courseCount, char name[]);
+int findCourse(struct Course courses[], int courseCount, const char name[]);
 void clearInput(void);
 void printCourse(struct Course *course);
-
 
 int main()
 {
@@ -66,31 +67,40 @@ int main()
             case 1:
                 addCourse(courses, &courseCount);
                 break;
+
             case 2:
                 showCourses(courses, courseCount);
                 break;
+
             case 3:
                 calculateAverage(courses, courseCount);
                 break;
+
             case 4:
                 searchCourse(courses, courseCount);
                 break;
+
             case 5:
                 calculateGPA(courses, courseCount);
                 break;
+
             case 6:
                 updateCourse(courses, courseCount);
                 break;
+
             case 7:
                 deleteCourse(courses, &courseCount);
                 break;
+
             case 8:
                 saveData(courses, courseCount);
                 break;
+
             case 9:
                 saveData(courses, courseCount);
                 printf("Goodbye!\n");
                 break;
+
             default:
                 printf("Invalid choice. Please choose between 1 and 9.\n");
         }
@@ -100,7 +110,6 @@ int main()
     return 0;
 }
 
-
 void clearInput(void)
 {
     int c;
@@ -109,7 +118,6 @@ void clearInput(void)
     {
     }
 }
-
 
 void addCourse(struct Course courses[], int *courseCount)
 {
@@ -166,6 +174,7 @@ void addCourse(struct Course courses[], int *courseCount)
         printf("Enter midterm grade (0-100): ");
 
         if (scanf("%f", &courses[*courseCount].midterm) == 1 &&
+            isfinite(courses[*courseCount].midterm) &&
             courses[*courseCount].midterm >= 0 &&
             courses[*courseCount].midterm <= 100)
         {
@@ -182,6 +191,7 @@ void addCourse(struct Course courses[], int *courseCount)
         printf("Enter final grade (0-100): ");
 
         if (scanf("%f", &courses[*courseCount].final) == 1 &&
+            isfinite(courses[*courseCount].final) &&
             courses[*courseCount].final >= 0 &&
             courses[*courseCount].final <= 100)
         {
@@ -197,7 +207,6 @@ void addCourse(struct Course courses[], int *courseCount)
 
     printf("\nCourse added successfully!\n");
 }
-
 
 void showCourses(struct Course courses[], int courseCount)
 {
@@ -216,13 +225,12 @@ void showCourses(struct Course courses[], int courseCount)
     }
 }
 
-
 void printCourse(struct Course *course)
 {
     float average;
 
-    average = course->midterm * 0.4 +
-              course->final * 0.6;
+    average = course->midterm * 0.4f +
+              course->final * 0.6f;
 
     printf("Course: %s\n", course->name);
     printf("Credit: %d\n", course->credit);
@@ -253,20 +261,16 @@ void printCourse(struct Course *course)
         printf("Status: FAILED\n");
 }
 
-
-int findCourse(struct Course courses[], int courseCount, char name[])
+int findCourse(struct Course courses[], int courseCount, const char name[])
 {
     for (int i = 0; i < courseCount; i++)
     {
         if (strcmp(courses[i].name, name) == 0)
-        {
             return i;
-        }
     }
 
     return -1;
 }
-
 
 void calculateAverage(struct Course courses[], int courseCount)
 {
@@ -280,14 +284,12 @@ void calculateAverage(struct Course courses[], int courseCount)
 
     printf("\nEnter course name: ");
 
-    fgets(searchName, NAME_SIZE, stdin);
+    if (fgets(searchName, NAME_SIZE, stdin) == NULL)
+        return;
+
     searchName[strcspn(searchName, "\n")] = '\0';
 
-    int index = findCourse(
-        courses,
-        courseCount,
-        searchName
-    );
+    int index = findCourse(courses, courseCount, searchName);
 
     if (index == -1)
     {
@@ -295,10 +297,8 @@ void calculateAverage(struct Course courses[], int courseCount)
         return;
     }
 
-    float average;
-
-    average = courses[index].midterm * 0.4 +
-              courses[index].final * 0.6;
+    float average = courses[index].midterm * 0.4f +
+                    courses[index].final * 0.6f;
 
     printf("\nCourse: %s\n", courses[index].name);
     printf("Average: %.2f\n", average);
@@ -308,7 +308,6 @@ void calculateAverage(struct Course courses[], int courseCount)
     else
         printf("Status: FAILED\n");
 }
-
 
 void searchCourse(struct Course courses[], int courseCount)
 {
@@ -322,8 +321,16 @@ void searchCourse(struct Course courses[], int courseCount)
 
     printf("\nSearch course: ");
 
-    fgets(searchName, NAME_SIZE, stdin);
+    if (fgets(searchName, NAME_SIZE, stdin) == NULL)
+        return;
+
     searchName[strcspn(searchName, "\n")] = '\0';
+
+    if (strlen(searchName) == 0)
+    {
+        printf("Search term cannot be empty.\n");
+        return;
+    }
 
     int found = 0;
 
@@ -337,11 +344,8 @@ void searchCourse(struct Course courses[], int courseCount)
     }
 
     if (!found)
-    {
         printf("Course not found.\n");
-    }
 }
-
 
 void calculateGPA(struct Course courses[], int courseCount)
 {
@@ -351,33 +355,32 @@ void calculateGPA(struct Course courses[], int courseCount)
         return;
     }
 
-    float totalPoints = 0;
+    float totalPoints = 0.0f;
     int totalCredits = 0;
 
     for (int i = 0; i < courseCount; i++)
     {
-        float average;
+        float average = courses[i].midterm * 0.4f +
+                        courses[i].final * 0.6f;
+
         float gradePoint;
 
-        average = courses[i].midterm * 0.4 +
-                  courses[i].final * 0.6;
-
         if (average >= 90)
-            gradePoint = 4.0;
+            gradePoint = 4.0f;
         else if (average >= 85)
-            gradePoint = 3.5;
+            gradePoint = 3.5f;
         else if (average >= 80)
-            gradePoint = 3.0;
+            gradePoint = 3.0f;
         else if (average >= 70)
-            gradePoint = 2.5;
+            gradePoint = 2.5f;
         else if (average >= 60)
-            gradePoint = 2.0;
+            gradePoint = 2.0f;
         else if (average >= 50)
-            gradePoint = 1.5;
+            gradePoint = 1.5f;
         else if (average >= 40)
-            gradePoint = 1.0;
+            gradePoint = 1.0f;
         else
-            gradePoint = 0.0;
+            gradePoint = 0.0f;
 
         totalPoints += gradePoint * courses[i].credit;
         totalCredits += courses[i].credit;
@@ -393,7 +396,6 @@ void calculateGPA(struct Course courses[], int courseCount)
            totalPoints / totalCredits);
 }
 
-
 void updateCourse(struct Course courses[], int courseCount)
 {
     if (courseCount == 0)
@@ -406,14 +408,12 @@ void updateCourse(struct Course courses[], int courseCount)
 
     printf("\nEnter course name to update: ");
 
-    fgets(searchName, NAME_SIZE, stdin);
+    if (fgets(searchName, NAME_SIZE, stdin) == NULL)
+        return;
+
     searchName[strcspn(searchName, "\n")] = '\0';
 
-    int index = findCourse(
-        courses,
-        courseCount,
-        searchName
-    );
+    int index = findCourse(courses, courseCount, searchName);
 
     if (index == -1)
     {
@@ -447,6 +447,7 @@ void updateCourse(struct Course courses[], int courseCount)
         printf("New midterm grade (0-100): ");
 
         if (scanf("%f", &courses[index].midterm) == 1 &&
+            isfinite(courses[index].midterm) &&
             courses[index].midterm >= 0 &&
             courses[index].midterm <= 100)
         {
@@ -463,6 +464,7 @@ void updateCourse(struct Course courses[], int courseCount)
         printf("New final grade (0-100): ");
 
         if (scanf("%f", &courses[index].final) == 1 &&
+            isfinite(courses[index].final) &&
             courses[index].final >= 0 &&
             courses[index].final <= 100)
         {
@@ -477,11 +479,7 @@ void updateCourse(struct Course courses[], int courseCount)
     printf("Course updated successfully!\n");
 }
 
-
-void deleteCourse(
-    struct Course courses[],
-    int *courseCount
-)
+void deleteCourse(struct Course courses[], int *courseCount)
 {
     if (*courseCount == 0)
     {
@@ -493,14 +491,12 @@ void deleteCourse(
 
     printf("\nEnter course name to delete: ");
 
-    fgets(searchName, NAME_SIZE, stdin);
+    if (fgets(searchName, NAME_SIZE, stdin) == NULL)
+        return;
+
     searchName[strcspn(searchName, "\n")] = '\0';
 
-    int index = findCourse(
-        courses,
-        *courseCount,
-        searchName
-    );
+    int index = findCourse(courses, *courseCount, searchName);
 
     if (index == -1)
     {
@@ -513,7 +509,13 @@ void deleteCourse(
     char answer;
 
     printf("Are you sure you want to delete it? (y/n): ");
-    scanf(" %c", &answer);
+
+    if (scanf(" %c", &answer) != 1)
+    {
+        clearInput();
+        return;
+    }
+
     clearInput();
 
     if (tolower((unsigned char)answer) != 'y')
@@ -523,21 +525,16 @@ void deleteCourse(
     }
 
     for (int i = index; i < *courseCount - 1; i++)
-    {
         courses[i] = courses[i + 1];
-    }
 
     (*courseCount)--;
 
     printf("Course deleted successfully!\n");
 }
 
-
 void saveData(struct Course courses[], int courseCount)
 {
-    FILE *file;
-
-    file = fopen(DATA_FILE, "wb");
+    FILE *file = fopen(DATA_FILE, "wb");
 
     if (file == NULL)
     {
@@ -545,10 +542,7 @@ void saveData(struct Course courses[], int courseCount)
         return;
     }
 
-    if (fwrite(&courseCount,
-               sizeof(int),
-               1,
-               file) != 1)
+    if (fwrite(&courseCount, sizeof(int), 1, file) != 1)
     {
         printf("Error saving course count.\n");
         fclose(file);
@@ -568,36 +562,31 @@ void saveData(struct Course courses[], int courseCount)
         }
     }
 
-    fclose(file);
+    if (fclose(file) != 0)
+    {
+        printf("Error closing data file.\n");
+        return;
+    }
 
     printf("Data saved successfully.\n");
 }
 
-
 int loadData(struct Course courses[])
 {
-    FILE *file;
+    FILE *file = fopen(DATA_FILE, "rb");
     int courseCount;
 
-    file = fopen(DATA_FILE, "rb");
-
     if (file == NULL)
-    {
         return 0;
-    }
 
-    if (fread(&courseCount,
-              sizeof(int),
-              1,
-              file) != 1)
+    if (fread(&courseCount, sizeof(int), 1, file) != 1)
     {
         fclose(file);
         printf("Data file is corrupted.\n");
         return 0;
     }
 
-    if (courseCount < 0 ||
-        courseCount > MAX_COURSES)
+    if (courseCount < 0 || courseCount > MAX_COURSES)
     {
         fclose(file);
         printf("Invalid data file.\n");
@@ -618,6 +607,21 @@ int loadData(struct Course courses[])
     }
 
     fclose(file);
+
+    for (int i = 0; i < courseCount; i++)
+    {
+        courses[i].name[NAME_SIZE - 1] = '\0';
+
+        if (courses[i].credit < 1 || courses[i].credit > 10 ||
+            !isfinite(courses[i].midterm) ||
+            !isfinite(courses[i].final) ||
+            courses[i].midterm < 0 || courses[i].midterm > 100 ||
+            courses[i].final < 0 || courses[i].final > 100)
+        {
+            printf("Invalid course data found. Data was not loaded.\n");
+            return 0;
+        }
+    }
 
     return courseCount;
 }
