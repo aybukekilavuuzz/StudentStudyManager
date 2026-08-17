@@ -1,30 +1,42 @@
 # Student Study Manager
 
-Student Study Manager is a console-based application developed in C to help university students manage their courses and grades.
+A simple console-based student course and grade management system developed in C.
+
+The project was created to practice fundamental C programming concepts such as structures, arrays, functions, pointers, string operations and file handling.
 
 ## Features
 
-- Add a new course
+- Add courses
 - Display all courses
-- Calculate course average
-- Search for a course
+- Calculate course averages
+- Search for courses
 - Calculate GPA
-- Save course data
-- Load saved course data
+- Update course information
+- Delete courses
+- Save course data to a file
+- Load saved data automatically
+- Validate grades and credits
 - Show pass/fail status
 
-## Technologies
+## Screenshots
 
-- C
-- Standard C Library
-- File Handling
-- Structures
-- Arrays
-- Functions
+### Main Menu
 
-## How It Works
+![Main Menu](images/menu.png)
 
-The user interacts with the application through a numbered menu.
+### Course List
+
+![Course List](images/courses.png)
+
+### GPA Calculation
+
+![GPA Calculation](images/gpa.png)
+
+### Course Search
+
+![Course Search](images/search.png)
+
+## Course Information
 
 For each course, the program stores:
 
@@ -35,13 +47,5 @@ For each course, the program stores:
 
 The course average is calculated using:
 
-`Midterm × 40% + Final × 60%`
-
-The program also calculates GPA according to the course credits.
-
-## How to Run
-
-Compile the program with GCC:
-
-```bash
-gcc main.c -o StudentStudyManager
+```text
+Average = Midterm × 0.40 + Final × 0.60
